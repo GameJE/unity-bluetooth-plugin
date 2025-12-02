@@ -19,6 +19,9 @@ import com.zentry.unity_bluetooth_plugin.utils.ThreadHelper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BLEConnectionManager {
     private static final String TAG = "BLEConnectionManager";
@@ -302,35 +305,91 @@ public class BLEConnectionManager {
         return deviceNameToAddressMap.get(deviceName.toUpperCase());
     }
 
-    public static void SetConnectionPriority(String address, int priority) {
+    public static boolean SetConnectionPriority(String address, int priority) {
         Log.d(TAG, "[DEBUG] SetConnectionPriority static 메서드 호출 - address: " + address + ", priority: " + priority);
         BLEConnectionManager manager = getInstance();
-        manager.setConnectionPriorityInternal(address, priority);
+        return manager.setConnectionPriorityInternal(address, priority);
     }
 
-    private void setConnectionPriorityInternal(String address, int priority) {
+    private boolean setConnectionPriorityInternal(String address, int priority) {
         Log.d(TAG, "[DEBUG] setConnectionPriorityInternal 시작 - address: " + address + ", priority: " + priority);
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return false;
+        }
 
         BluetoothGatt gatt = connectedDevices.get(address);
         if (gatt == null) {
             Log.w(TAG, "[WARNING] Cannot set connection priority - device not connected: " + address);
             Log.d(TAG, "[DEBUG] connectedDevices 크기: " + connectedDevices.size());
-            return;
+            return false;
         }
 
-        Log.d(TAG, "[DEBUG] GATT 객체 확인 완료, ThreadHelper.runOnMainThread 호출");
+        int resolvedPriority = resolvePriority(priority);
+        if (resolvedPriority == -1) {
+            return false;
+        }
+
+        Log.d(TAG, "[DEBUG] requestConnectionPriority resolved - address: " + address + ", resolvedPriority: " + resolvedPriority + ", rawPriority: " + priority);
+
+        if (ThreadHelper.isMainThread()) {
+            boolean requestResult = gatt.requestConnectionPriority(resolvedPriority);
+            Log.d(TAG, "[DEBUG] requestConnectionPriority mainThread result - address: " + address + ", result: " + requestResult);
+            return requestResult;
+        }
+
+        AtomicBoolean result = new AtomicBoolean(false);
+        CountDownLatch latch = new CountDownLatch(1);
 
         ThreadHelper.runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                Log.d(TAG, "[DEBUG] MainThread에서 실행 시작, gatt.requestConnectionPriority 호출");
-                boolean success = gatt.requestConnectionPriority(priority);
-                if (success) {
-                    Log.d(TAG, "[SUCCESS] Connection priority set to " + priority + " for device: " + address);
-                } else {
-                    Log.e(TAG, "[ERROR] Failed to set connection priority for device: " + address);
+                try {
+                    boolean requestResult = gatt.requestConnectionPriority(resolvedPriority);
+                    Log.d(TAG, "[DEBUG] requestConnectionPriority posted result - address: " + address + ", result: " + requestResult);
+                    result.set(requestResult);
+                } finally {
+                    latch.countDown();
                 }
             }
         });
+
+        try {
+            latch.await(1, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        return latch.getCount() == 0 && result.get();
+    }
+
+    private int resolvePriority(int priority) {
+        // Android/Unity 상수(0=BALANCED, 1=HIGH, 2=LOW_POWER) 우선 처리
+        switch (priority) {
+            case BluetoothGatt.CONNECTION_PRIORITY_BALANCED:
+                return BluetoothGatt.CONNECTION_PRIORITY_BALANCED;
+            case BluetoothGatt.CONNECTION_PRIORITY_HIGH:
+                return BluetoothGatt.CONNECTION_PRIORITY_HIGH;
+            case BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER:
+                return BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER;
+            default:
+                break;
+        }
+
+        // Legacy 입력: 1=LOW_POWER, 2=BALANCED, 3=HIGH
+        if (priority >= 1 && priority <= 3) {
+            switch (priority) {
+                case 1:
+                    return BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER;
+                case 2:
+                    return BluetoothGatt.CONNECTION_PRIORITY_BALANCED;
+                case 3:
+                    return BluetoothGatt.CONNECTION_PRIORITY_HIGH;
+                default:
+                    return -1;
+            }
+        }
+
+        return -1;
     }
 }

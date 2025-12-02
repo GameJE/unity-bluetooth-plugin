@@ -110,15 +110,16 @@ public class UnityBLEPlugin {
         return BLEScanManager.getInstance().isScanning();
     }
 
-    public static void SetConnectionPriority(String nameOrAddress, int priority) {
+    public static boolean SetConnectionPriority(String nameOrAddress, int priority) {
         Log.d(TAG, "[DEBUG] SetConnectionPriority 호출됨 - nameOrAddress: " + nameOrAddress + ", priority: " + priority);
 
         String address = resolveAddress(nameOrAddress);
         if (address != null) {
             Log.d(TAG, "[DEBUG] Device 주소 확인 완료, BLEConnectionManager.SetConnectionPriority 호출 - address: " + address);
-            BLEConnectionManager.SetConnectionPriority(address, priority);
+            return BLEConnectionManager.SetConnectionPriority(address, priority);
         } else {
             Log.e(TAG, "[ERROR] Cannot set connection priority - device not found: " + nameOrAddress);
+            return false;
         }
     }
 }
