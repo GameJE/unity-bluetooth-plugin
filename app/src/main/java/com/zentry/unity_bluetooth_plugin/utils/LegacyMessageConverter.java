@@ -23,6 +23,7 @@ public class LegacyMessageConverter {
     private static final String TYPE_DATA_RECEIVED = "OnDataReceived";
     private static final String TYPE_MTU_CHANGED = "OnMtuChanged";
     private static final String TYPE_NOTIFICATION_STATE_CHANGED = "OnNotificationStateChanged";
+    private static final String TYPE_RSSI_READ = "OnReadRSSI";
 
     public static String convertToLegacyFormat(String jsonMessage) {
         try {
@@ -98,6 +99,13 @@ public class LegacyMessageConverter {
                     sb.append(json.optString(KEY_ADDRESS, ""));
                     sb.append("~");
                     sb.append(json.optString(KEY_CHARACTERISTIC_UUID, ""));
+                    break;
+
+                case TYPE_RSSI_READ:
+                    sb.append("DidReadRSSI~");
+                    sb.append(json.optString(KEY_ADDRESS, ""));
+                    sb.append("~");
+                    sb.append(json.optInt(KEY_RSSI, 0));
                     break;
 
                 default:

@@ -250,6 +250,32 @@ public class BLEGattManager {
         manager.requestMtuInternal(address, mtu);
     }
 
+    public static void ReadRSSI(String address) {
+        BLEGattManager manager = getInstance();
+        manager.readRssiInternal(address);
+    }
+
+    private void readRssiInternal(String address) {
+        bridge = BLEManager.getInstance().getBridge();
+        BLEConnectionManager connectionManager = BLEConnectionManager.getInstance();
+        BluetoothGatt gatt = connectionManager.getGatt(address);
+
+        if (gatt == null) {
+            bridge.sendError("Device not connected: " + address);
+            return;
+        }
+
+        ThreadHelper.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                boolean result = gatt.readRemoteRssi();
+                if (!result) {
+                    bridge.sendError("Failed to read RSSI: " + address);
+                }
+            }
+        });
+    }
+
     private void requestMtuInternal(String address, int mtu) {
         bridge = BLEManager.getInstance().getBridge();
         BLEConnectionManager connectionManager = BLEConnectionManager.getInstance();

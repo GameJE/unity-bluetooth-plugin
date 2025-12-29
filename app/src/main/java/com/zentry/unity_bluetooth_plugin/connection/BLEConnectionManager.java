@@ -245,6 +245,17 @@ public class BLEConnectionManager {
             }
 
             @Override
+            public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
+                super.onReadRemoteRssi(gatt, rssi, status);
+                if (status == BluetoothGatt.GATT_SUCCESS) {
+                    bridge.sendRssiRead(address, rssi);
+                    Log.d(TAG, "RSSI read: " + rssi);
+                } else {
+                    bridge.sendError("Failed to read RSSI: " + address);
+                }
+            }
+
+            @Override
             public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
                 super.onDescriptorWrite(gatt, descriptor, status);
                 if (status == BluetoothGatt.GATT_SUCCESS) {

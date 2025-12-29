@@ -104,4 +104,8 @@ public class UnityBLEBridge {
     public void sendNotificationStateChanged(String address, String characteristicUUID) {
         sendMessage(BLEMessage.createNotificationStateChanged(address, characteristicUUID));
     }
+
+    public void sendRssiRead(String address, int rssi) {
+        sendMessage(BLEMessage.createRssiRead(address, rssi));
+    }
 }

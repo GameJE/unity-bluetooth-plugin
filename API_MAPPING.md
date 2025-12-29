@@ -16,9 +16,10 @@
 | 8 | `SubscribeCharacteristic(...)` | `DidUpdateNotificationStateForCharacteristic~char~address`<br>`DidUpdateValueForCharacteristic~char~address~base64data` | `BLEGattManager.SubscribeCharacteristic()` | ✅ |
 | 9 | `UnSubscribeCharacteristic(...)` | - | `BLEGattManager.UnSubscribeCharacteristic()` | ✅ |
 | 10 | `ReadCharacteristic(...)` | `DidUpdateValueForCharacteristic~char~address~base64data` | `BLEGattManager.ReadCharacteristic()` | ✅ |
-| 11 | `WriteCharacteristic(...)` | `DidWriteCharacteristic~char` | `BLEGattManager.WriteCharacteristic()` | ✅ |
-| 12 | `RequestMtu(string, int, Action)` | `MtuChanged~address~mtu` | `BLEGattManager.RequestMtu()` | ✅ |
-| 13 | `BluetoothConnectionPriority(string, ConnectionPriority)` | - | `UnityBLEPlugin.SetConnectionPriority()` | ✅ |
+| 11 | `WriteCharacteristic(...)` | `DidWriteCharacteristic~char` | `BLEGattManager.WriteCharacteristic()` | ? |
+| 12 | `RequestMtu(string, int, Action)` | `MtuChanged~address~mtu` | `BLEGattManager.RequestMtu()` | ? |
+| 13 | `ReadRSSI(string, Action)` | `DidReadRSSI~address~rssi` | `UnityBLEPlugin.ReadRSSI()` | ? |
+| 14 | `BluetoothConnectionPriority(string, ConnectionPriority)` | - | `UnityBLEPlugin.SetConnectionPriority()` | ? |
 
 ## 서비스/Characteristic 발견 메시지
 
@@ -38,7 +39,6 @@
 | API | 용도 | 비고 |
 |-----|------|------|
 | `BluetoothEnable(bool)` | 블루투스 활성화 | Android 전용, 다이얼로그 표시만 |
-| `ReadRSSI(string, Action)` | 신호 강도 읽기 | 향후 추가 가능 |
 | `ScanForBeacons(...)` | iBeacon 스캔 | Peripheral 모드, 미사용 |
 | `CreateService(...)` | Peripheral 모드 | 미사용 |
 | `CreateCharacteristic(...)` | Peripheral 모드 | 미사용 |
@@ -93,6 +93,7 @@
 | `TYPE_CHARACTERISTIC_DISCOVERED` | `DiscoveredCharacteristic~{address}~{serviceUUID}~{charUUID}` | `DiscoveredCharacteristicAction(address, serviceUUID, charUUID)` |
 | `TYPE_DATA_RECEIVED` | `DidUpdateValueForCharacteristic~{charUUID}~{address}~{base64data}` | `DidUpdateCharacteristicValueAction[charUUID][action](charUUID, data)` |
 | `TYPE_MTU_CHANGED` | `MtuChanged~{address}~{mtu}` | `RequestMtuAction(address, mtu)` |
+| `TYPE_RSSI_READ` | `DidReadRSSI~{address}~{rssi}` | `ReadRSSIAction(address, rssi)` |
 
 ## 구현 우선순위
 

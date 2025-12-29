@@ -102,6 +102,13 @@ public class UnityBLEPlugin {
         }
     }
 
+    public static void ReadRSSI(String nameOrAddress) {
+        String address = resolveAddress(nameOrAddress);
+        if (address != null) {
+            BLEGattManager.ReadRSSI(address);
+        }
+    }
+
     public static boolean IsDeviceConnected(String address) {
         return BLEConnectionManager.getInstance().isConnected(address);
     }

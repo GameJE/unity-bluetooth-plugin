@@ -25,6 +25,7 @@ public class BLEMessage {
     public static final String TYPE_DATA_RECEIVED = "OnDataReceived";
     public static final String TYPE_MTU_CHANGED = "OnMtuChanged";
     public static final String TYPE_NOTIFICATION_STATE_CHANGED = "OnNotificationStateChanged";
+    public static final String TYPE_RSSI_READ = "OnReadRSSI";
 
     private final String type;
     private final JSONObject data;
@@ -106,6 +107,13 @@ public class BLEMessage {
         BLEMessage message = new BLEMessage(TYPE_NOTIFICATION_STATE_CHANGED);
         message.putString(KEY_ADDRESS, address);
         message.putString(KEY_CHARACTERISTIC_UUID, characteristicUUID);
+        return message;
+    }
+
+    public static BLEMessage createRssiRead(String address, int rssi) {
+        BLEMessage message = new BLEMessage(TYPE_RSSI_READ);
+        message.putString(KEY_ADDRESS, address);
+        message.putInt(KEY_RSSI, rssi);
         return message;
     }
 
